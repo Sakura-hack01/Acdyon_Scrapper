@@ -11,7 +11,7 @@ This service is engineered to reliably extract structured data from web sources 
 - **Humanized Request Pacing** — Introduces randomized jitter between requests to avoid time-series clustering and reduce the likelihood of behavioral flagging.
 - **Containerized Deployment** — Fully Dockerized to ensure deterministic builds and production-ready deployment.
 
-> **Note to Reviewers:** For a detailed discussion of the detection surface, ingestion strategy, and the design considerations for evolving this synchronous prototype into a distributed, Kafka-driven streaming system, please refer to [`DECISIONS.txt`](./Decision.txt).
+> **Note to Reviewers:** For a detailed discussion of the detection surface, ingestion strategy, and the design considerations for evolving this synchronous prototype into a distributed, Kafka-driven streaming system, please refer to [`Decisions.txt`](./Decisions.txt).
 
 ## Tech Stack
 
