@@ -13,8 +13,8 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("\n" + "="*60)
-    print("🚀 ACDYON INGESTION SERVICE IS LIVE!")
-    print("👉 CLICK HERE TO RUN THE PIPELINE: http://127.0.0.1:8000/scrape")
+    print(" ACDYON INGESTION SERVICE IS LIVE!")
+    print("CLICK HERE TO RUN THE PIPELINE: http://127.0.0.1:8000/scrape")
     print("="*60 + "\n")
     yield
 app = FastAPI(title="Acdyon Ingestion Service")
@@ -24,8 +24,6 @@ def redirect_to_scrape():
     """If the grader just visits the base URL, bounce them directly to the scraper."""
     return RedirectResponse(url="/scrape")
     
-
-# --- Schemas ---
 class JobListing(BaseModel):
     title: str = Field(..., description="The job title and company")
     link: Optional[str] = Field(None, description="Direct link to the application")
@@ -38,8 +36,7 @@ class ScrapeResponse(BaseModel):
 class TargetBlockedException(Exception):
     """Raised when WAF or CAPTCHA blocks the request."""
     pass
-
-# --- Resilience & Pacing ---
+#Pacing
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=2, max=10),
@@ -49,14 +46,14 @@ def fetch_job_board_safely(url: str) -> str:
     """
     Fetches target URL using TLS & HTTP/2 impersonation to bypass network-layer bot detection.
     """
-    # Jitter to mimic human pacing
+    # Mimiking human pacing
     time.sleep(random.uniform(0.5, 2.0)) 
     
     try:
-        # Impersonate Chrome 120 to match JA3/JA4 fingerprints
+        #fingerprinting
         response = requests.get(url, impersonate="chrome120", timeout=15)
         
-        # Detect common WAF blocks
+        #WAF blocks
         if response.status_code in [403, 429]:
             if "captcha" in response.text.lower() or "cloudflare" in response.text.lower():
                 raise TargetBlockedException("Blocked by WAF/CAPTCHA.")
@@ -67,7 +64,7 @@ def fetch_job_board_safely(url: str) -> str:
         print(f"Network error: {e}")
         raise
 
-# --- API Endpoints ---
+#API Endpoints
 @app.get("/scrape", response_model=ScrapeResponse)
 def run_ingestion_pipeline():
     """
@@ -80,12 +77,11 @@ def run_ingestion_pipeline():
         soup = BeautifulSoup(html_content, "html.parser")
         
         jobs = []
-        # Fallback-safe extraction: If markup changes, we get an empty list, not a crash.
+        # Fallback Extraction
         for item in soup.select(".athing"):
             title_tag = item.select_one(".titleline > a")
             if title_tag:
                 raw_link = title_tag.get("href")
-                # This converts 'item?id=123' into 'https://news.ycombinator.com/item?id=123'
                 absolute_link = urljoin(target_url, raw_link) 
                 
                 jobs.append(JobListing(
