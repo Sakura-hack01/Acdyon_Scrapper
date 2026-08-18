@@ -1,0 +1,25 @@
+Here is the revised version of your architecture decisions, rewritten in a professional and formal tone:
+
+***
+
+### Acdyon Technologies: Track 1 (Data Ingestion) Architecture Decisions
+
+**1. Rationale for the Selected Ingestion Strategy**
+The conventional approach to this problem typically involves deploying a cluster of headless browsers (such as Selenium or Playwright). However, this methodology was rejected due to the substantial CPU and memory overhead required to render a full Document Object Model (DOM). Such resource intensity severely constrains throughput and introduces significant vulnerability to client-side detection mechanisms, such as `navigator.webdriver` checks. 
+
+Instead, a strategy utilizing TLS and HTTP/2 fingerprint impersonation via `curl_cffi` was implemented. This approach accurately replicates the cryptographic handshake of modern browsers (e.g., Chrome 120), effectively bypassing Reverse Proxy Web Application Firewalls (WAFs)—including Cloudflare and DataDome—strictly at the network layer. This ensures the ingestion service remains highly concurrent, resource-efficient, and scalable while successfully evading primary detection surfaces.
+
+**2. Time-Constrained Trade-offs and Future Optimizations**
+**The Trade-off:** Given the project's time constraints, the data pipeline was architected as a synchronous FastAPI service, resulting in tight coupling between the extraction logic and network fetching operations.
+
+**Proposed Future Architecture:** With an extended development timeline, this system would be re-architected into a distributed, decoupled streaming platform. The fetcher component would be configured to transmit raw HTML payloads directly into a message broker, such as Apache Kafka. Subsequently, a stream processor (e.g., Apache Flink) would consume, parse, and normalize the data asynchronously. Furthermore, the static request jitter would be replaced with dynamic middleware utilizing Bayesian Optimization. This would autonomously determine the optimal request interval for each target domain, thereby maximizing data throughput while concurrently minimizing the risk of proxy IP bans.
+
+**3. Integration of AI Tools and Manual Verification**
+Large Language Models (LLMs) were leveraged to accelerate the development of boilerplate components, specifically the FastAPI routing structures, Pydantic data schemas, and foundational BeautifulSoup CSS selection loops.
+
+Following the automated scaffolding, the network and resilience layers were manually engineered and rigorously refined. The `curl_cffi` impersonation logic was explicitly integrated to ensure the TLS fingerprint accurately matched modern browser signatures. Additionally, exponential backoff strategies were custom-designed within the `tenacity` retry wrapper. This guarantees that the pipeline handles transient HTTP errors gracefully, preventing system failures and mitigating the risk of exhausting target rate limits. Finally, the Docker configuration was optimized to execute Python in unbuffered mode, ensuring production-grade observability and logging.
+
+**4. Ethical and Technical Boundaries**
+The definitive technical boundary for this system is the circumvention of authenticated sessions via compromised credentials, as well as the subversion of CAPTCHAs designed to protect sensitive Personally Identifiable Information (PII). 
+
+From an ethical standpoint, if a platform explicitly prohibits automated access within its Terms of Service and does not offer a public API, operations are strictly limited to heavily throttled, human-equivalent request rates (e.g., a maximum of one request per ten seconds). This protocol ensures zero infrastructure strain on the host servers, maintaining alignment with responsible data extraction practices.
